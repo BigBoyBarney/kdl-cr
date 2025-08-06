@@ -1,65 +1,11 @@
-require "../spec_helper"
+require "../../spec_helper"
+require "./test_classes"
 
 class TestChild
   include KDL::Serializable
 
   @[KDL::Argument]
   property value : String
-end
-
-class TestNode
-  include KDL::Serializable
-
-  @[KDL::Argument]
-  property first : String
-
-  @[KDL::Argument]
-  property second : Bool
-
-  @[KDL::Arguments]
-  property numbers : Array(UInt32)
-
-  @[KDL::Property]
-  property foo : String
-
-  @[KDL::Property(name: "bardle")]
-  property bar : String
-
-  @[KDL::Properties]
-  property map : Hash(String, String)
-
-  @[KDL::Child(unwrap: "argument")]
-  property arg : String
-
-  @[KDL::Child(unwrap: "arguments")]
-  property args : Array(String)
-
-  @[KDL::Child(unwrap: "properties")]
-  property props : Hash(String, String)
-
-  @[KDL::Child(name: "feature", unwrap: "argument")]
-  property feature_name : String
-
-  @[KDL::Child(name: "feature", unwrap: "property", property_name: "enabled")]
-  property feature_enabled : Bool
-
-  @[KDL::Child(name: "feature", unwrap: "property", property_name: "option")]
-  property feature_option : UInt32
-
-  @[KDL::Child(unwrap: "dash_vals")]
-  property dashies : Array(String)
-
-  @[KDL::Child]
-  property norf : TestChild
-
-  @[KDL::Children(name: "thing")]
-  property things : Array(TestChild)
-
-  @[KDL::Child(unwrap: "children")]
-  property thangs : Array(TestChild)
-
-  @[KDL::Children(name: "path", unwrap: "argument")]
-  property paths : Array(String)
 end
 
 describe KDL::Serializable do
@@ -93,10 +39,10 @@ describe KDL::Serializable do
     obj.numbers.should eq [1, 22, 333]
     obj.foo.should eq "a"
     obj.bar.should eq "b"
-    obj.map.should eq({ "baz" => "c", "qux" => "d" })
+    obj.map.should eq({"baz" => "c", "qux" => "d"})
     obj.arg.should eq "arg2"
     obj.args.should eq ["x", "y", "z"]
-    obj.props.should eq({ "a" => "x", "b" => "y", "c" => "z" })
+    obj.props.should eq({"a" => "x", "b" => "y", "c" => "z"})
     obj.feature_name.should eq("florp")
     obj.feature_enabled.should eq(true)
     obj.feature_option.should eq(42_u64)
@@ -112,5 +58,64 @@ describe KDL::Serializable do
     obj.paths.should eq ["some/path", "some/other/path"]
 
     KDL::Document.new([obj.to_kdl]).should eq doc
+  end
+
+  describe "default value" do
+    it "serializes missing argument" do
+      doc = KDL.parse <<-KDL
+      missing
+    KDL
+
+      obj = MissingArgumentWithDefault.from_kdl doc
+      obj.missing.should eq "default"
+    end
+
+    it "serializes missing node" do
+      doc = KDL.parse <<-KDL
+      KDL
+
+      obj = MissingArgumentWithDefault.from_kdl doc
+      obj.missing.should eq "default"
+    end
+  end
+
+  describe "nilable" do
+    it "serializes missing argument" do
+      doc = KDL.parse <<-KDL
+        missing
+      KDL
+
+      obj = MissingArgumentWithNilable.from_kdl doc
+      obj.missing.should eq nil
+    end
+
+    it "serializes missing node" do
+      doc = KDL.parse <<-KDL
+      KDL
+
+      obj = MissingArgumentWithNilable.from_kdl doc
+      obj.missing.should eq nil
+    end
+  end
+
+  describe "no default value" do
+    it "raises exception for missing argument" do
+      doc = KDL.parse <<-KDL
+        missing
+      KDL
+
+      expect_raises(KDL::SerializableException) do
+        MissingArgumentWithoutDefault.from_kdl doc
+      end
+    end
+
+    it "raises exception for missing node" do
+      doc = KDL.parse <<-KDL
+      KDL
+
+      expect_raises(KDL::SerializableException) do
+        MissingArgumentWithoutDefault.from_kdl doc
+      end
+    end
   end
 end
