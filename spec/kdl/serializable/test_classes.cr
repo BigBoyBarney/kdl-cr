@@ -86,3 +86,20 @@ class NestedMissingArgumentWithDefault
   def initialize
   end
 end
+
+class NestedMissingArgumentWithNilable
+  include KDL::Serializable
+
+  @[KDL::Child(name: "missing")]
+  property missing : MissingArgumentWithDefault? = nil
+
+  def initialize
+  end
+end
+
+class NestedMissingArgumentWithoutDefault
+  include KDL::Serializable
+
+  @[KDL::Child(name: "missing")]
+  property missing : MissingArgumentWithoutDefault
+end

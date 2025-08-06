@@ -105,6 +105,14 @@ describe KDL::Serializable do
       obj = MissingArgumentWithNilable.from_kdl doc
       obj.missing.should eq nil
     end
+
+    it "serializes missing nested node" do
+      doc = KDL.parse <<-KDL
+      KDL
+
+      obj = NestedMissingArgumentWithNilable.from_kdl doc
+      obj.missing.should be nil
+    end
   end
 
   describe "no default value" do
@@ -124,6 +132,17 @@ describe KDL::Serializable do
 
       expect_raises(KDL::SerializableException) do
         MissingArgumentWithoutDefault.from_kdl doc
+      end
+    end
+
+    it "raises exception for missing nested node" do
+      doc = KDL.parse <<-KDL
+        missing {
+        }
+      KDL
+
+      expect_raises(KDL::SerializableException) do
+        NestedMissingArgumentWithoutDefault.from_kdl doc
       end
     end
   end
