@@ -256,7 +256,18 @@ module KDL
           {% elsif value[:unwrap] == "dash_vals" %}
             %var{name} = node.child({{value[:name]}}).dash_vals.map { |v| convert(v, {{ value[:type].type_vars[0] }}) }
           {% else %}
-            %var{name} = {{value[:type]}}.from_kdl(node.child({{value[:name]}}))
+            %child = node.child?({{value[:name]}})
+            %var{name} = if %child
+                          {{value[:type]}}.from_kdl(%child)
+                        else
+                          {% if value[:has_default] %}
+                            {{value[:default]}}
+                          {% elsif value[:nilable] %}
+                            nil
+                          {% else %}
+                            raise SerializableException.new("Missing argument for KDL node: {{name}}")
+                          {% end %}
+                        end
           {% end %}
           %found{name} = true
         {% end %}

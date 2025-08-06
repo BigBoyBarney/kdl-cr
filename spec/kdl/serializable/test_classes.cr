@@ -58,6 +58,9 @@ class MissingArgumentWithDefault
 
   @[KDL::Child(unwrap: "argument")]
   property missing : String = "default"
+
+  def initialize
+  end
 end
 
 class MissingArgumentWithNilable
@@ -72,4 +75,14 @@ class MissingArgumentWithoutDefault
 
   @[KDL::Child(unwrap: "argument")]
   property missing : String
+end
+
+class NestedMissingArgumentWithDefault
+  include KDL::Serializable
+
+  @[KDL::Child(name: "missing")]
+  property missing : MissingArgumentWithDefault = MissingArgumentWithDefault.new
+
+  def initialize
+  end
 end
