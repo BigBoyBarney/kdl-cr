@@ -88,7 +88,7 @@ describe KDL::Serializable do
       doc.default_int.should eq 1234
       doc.default_bool.should eq true
       doc.default_class.should be_a TestNodeTwo
-      doc.default_class.not_nil!.one.should eq "Set" # Parity with `JSON::Serializable when a key is present but is empty.`
+      doc.default_class.not_nil!.one.should eq "Set"
     end
 
     it "raises when not nilable, no default" do
