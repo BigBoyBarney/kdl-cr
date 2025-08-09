@@ -25,30 +25,31 @@ module KDL
     end
 
     macro convert(expr, type)
-      {% type_str = type.stringify %}
-      {% if type_str == "Int8" %}
+      {% parsed_type = parse_type(type.stringify).resolve? %}
+
+      {% if parsed_type == Int8 %}
         {{expr}}.as(Number).to_i8
-      {% elsif type_str == "Int16" %}
+      {% elsif parsed_type == Int16 %}
         {{expr}}.as(Number).to_i16
-      {% elsif type_str == "Int32" %}
+      {% elsif parsed_type == Int32 %}
         {{expr}}.as(Number).to_i32
-      {% elsif type_str == "Int64" %}
+      {% elsif parsed_type == Int64 %}
         {{expr}}.as(Number).to_i64
-      {% elsif type_str == "Int128" %}
+      {% elsif parsed_type == Int128 %}
         {{expr}}.as(Number).to_i128
-      {% elsif type_str == "UInt8" %}
+      {% elsif parsed_type == UInt8 %}
         {{expr}}.as(Number).to_u8
-      {% elsif type_str == "UInt16" %}
+      {% elsif parsed_type == UInt16 %}
         {{expr}}.as(Number).to_u16
-      {% elsif type_str == "UInt32" %}
+      {% elsif parsed_type == UInt32 %}
         {{expr}}.as(Number).to_u32
-      {% elsif type_str == "UInt64" %}
+      {% elsif parsed_type == UInt64 %}
         {{expr}}.as(Number).to_u64
-      {% elsif type_str == "UInt128" %}
+      {% elsif parsed_type == UInt128 %}
         {{expr}}.as(Number).to_u128
-      {% elsif type_str == "Float32" %}
+      {% elsif parsed_type == Float32 %}
         {{expr}}.as(Number).to_f32
-      {% elsif type_str == "Float64" %}
+      {% elsif parsed_type == Float64 %}
         {{expr}}.as(Number).to_f64
       {% else %}
         {{expr}}.as({{type}})
