@@ -9,31 +9,12 @@ class TestChild
 end
 
 describe KDL::Serializable do
-  it "serializes documents" do
-    doc = KDL.parse <<-KDL
-    TestNode "arg1" #true 1 22 333 foo="a" bardle="b" baz="c" qux="d" {
-      norf wat
-      thing foo
-      thing bar
-      thing baz
-      path "some/path"
-      path "some/other/path"
-      arg arg2
-      args x y z
-      props a=x b=y c=z
-      feature florp enabled=#true option=42
-      dashies {
-        - Lorem
-        - Ipsum
-      }
-      thangs {
-        - qux
-        - norf
-      }
-    }
-    KDL
+  it "serializes test node" do
+    kdl = KDL.load_file "#{__DIR__}/kdl_documents/full_document.kdl"
+    doc = TestDoc.from_kdl(kdl)
+    obj = doc.test_node.not_nil!
 
-    obj = TestNode.from_kdl(doc.nodes[0])
+    obj.should be_a TestNode
     obj.first.should eq "arg1"
     obj.second.should eq true
     obj.numbers.should eq [1, 22, 333]
@@ -56,94 +37,70 @@ describe KDL::Serializable do
     obj.thangs[0].value.should eq "qux"
     obj.thangs[1].value.should eq "norf"
     obj.paths.should eq ["some/path", "some/other/path"]
-
-    KDL::Document.new([obj.to_kdl]).should eq doc
   end
 
-  describe "default value" do
-    it "serializes missing argument" do
-      doc = KDL.parse <<-KDL
-      missing
-    KDL
+  describe "missing arguments" do
+    kdl = KDL.load_file "#{__DIR__}/kdl_documents/missing_argument.kdl"
 
-      obj = MissingArgumentWithDefault.from_kdl doc
-      obj.missing.should eq "default"
+    it "handles nilable, no default" do
+      doc = Missing.from_kdl(kdl)
+
+      doc.string.should eq nil
+      doc.int.should eq nil
+      doc.bool.should eq nil
+      doc.class.should be_a TestNodeTwo # Parity with `JSON::Serializable when a key is present but is empty.`
+      doc.class.not_nil!.one.should eq "Unset"
     end
 
-    it "serializes missing node" do
-      doc = KDL.parse <<-KDL
-      KDL
+    it "handles nilable, with default" do
+      doc = Missing.from_kdl(kdl)
 
-      obj = MissingArgumentWithDefault.from_kdl doc
-      obj.missing.should eq "default"
+      doc.default_string.should eq "I exist!"
+      doc.default_int.should eq 1234
+      doc.default_bool.should eq true
+      doc.default_class.should be_a TestNodeTwo
+      doc.default_class.not_nil!.one.should eq "Unset" # Parity with `JSON::Serializable when a key is present but is empty.`
     end
 
-    it "serializes missing nested node" do
-      doc = KDL.parse <<-KDL
-      KDL
-
-      obj = NestedMissingArgumentWithDefault.from_kdl doc
-      obj.missing.should be_a MissingArgumentWithDefault
-      obj.missing.missing.should eq "default"
-    end
-  end
-
-  describe "nilable" do
-    it "serializes missing argument" do
-      doc = KDL.parse <<-KDL
-        missing
-      KDL
-
-      obj = MissingArgumentWithNilable.from_kdl doc
-      obj.missing.should eq nil
-    end
-
-    it "serializes missing node" do
-      doc = KDL.parse <<-KDL
-      KDL
-
-      obj = MissingArgumentWithNilable.from_kdl doc
-      obj.missing.should eq nil
-    end
-
-    it "serializes missing nested node" do
-      doc = KDL.parse <<-KDL
-      KDL
-
-      obj = NestedMissingArgumentWithNilable.from_kdl doc
-      obj.missing.should be nil
+    it "raises when not nilable, no default" do
+      expect_raises(KDL::SerializableException) do
+        doc = MissingWillError.from_kdl(kdl)
+      end
     end
   end
 
-  describe "no default value" do
-    it "raises exception for missing argument" do
-      doc = KDL.parse <<-KDL
-        missing
-      KDL
+  describe "missing keys" do
+    kdl = KDL.parse ""
 
-      expect_raises(KDL::SerializableException) do
-        MissingArgumentWithoutDefault.from_kdl doc
-      end
+    it "handles nilable, no default" do
+      doc = Missing.from_kdl(kdl)
+
+      doc.string.should eq nil
+      doc.int.should eq nil
+      doc.bool.should eq nil
+      doc.class.should eq nil
     end
 
-    it "raises exception for missing node" do
-      doc = KDL.parse <<-KDL
-      KDL
+    it "handles nilable, with default" do
+      doc = Missing.from_kdl(kdl)
 
-      expect_raises(KDL::SerializableException) do
-        MissingArgumentWithoutDefault.from_kdl doc
-      end
+      doc.default_string.should eq "I exist!"
+      doc.default_int.should eq 1234
+      doc.default_bool.should eq true
+      doc.default_class.should be_a TestNodeTwo
+      doc.default_class.not_nil!.one.should eq "Set" # Parity with `JSON::Serializable when a key is present but is empty.`
     end
 
-    it "raises exception for missing nested node" do
-      doc = KDL.parse <<-KDL
-        missing {
-        }
-      KDL
-
+    it "raises when not nilable, no default" do
       expect_raises(KDL::SerializableException) do
-        NestedMissingArgumentWithoutDefault.from_kdl doc
+        doc = MissingWillError.from_kdl(kdl)
       end
     end
+  end
+
+  # Does not work currently, because it always wraps the entire document with the topmost class name.
+  # Todo:
+  pending "Deserializes the seralized data" do
+    KDL::Document.new([doc.to_kdl]).should eq parsed
   end
 end

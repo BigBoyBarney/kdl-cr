@@ -1,5 +1,5 @@
 require "./kdl/*"
-require "./union.cr"
+require "./from_kdl.cr"
 
 module KDL
   VERSION = "0.2.0"

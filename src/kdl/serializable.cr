@@ -244,7 +244,6 @@ module KDL
                             raise SerializableException.new("Missing argument for KDL node: {{name}}")
                           {% end %}
                         end
-
           {% elsif value[:unwrap] == "arguments" %}
             %var{name} = node.args({{value[:name]}}).map { |v| convert(v, {{ value[:type].type_vars[0] }}) }
           {% elsif value[:unwrap] == "properties" %}

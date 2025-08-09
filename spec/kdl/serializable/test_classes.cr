@@ -1,3 +1,58 @@
+class TestDoc
+  include KDL::Serializable
+
+  @[KDL::Child(name: "TestNode")]
+  property test_node : TestNode
+end
+
+# Class to simulate missing keys, arguments etc.
+# Todo: properties
+class Missing
+  include KDL::Serializable
+
+  @[KDL::Child(unwrap: "argument")]
+  property string : String?
+
+  @[KDL::Child(unwrap: "argument")]
+  property int : Int64?
+
+  @[KDL::Child(unwrap: "argument")]
+  property bool : Bool?
+
+  @[KDL::Child]
+  property class : TestNodeTwo?
+
+  @[KDL::Child(unwrap: "argument")]
+  property default_string : String? = "I exist!"
+
+  @[KDL::Child(unwrap: "argument")]
+  property default_int : Int64? = 1234
+
+  @[KDL::Child(unwrap: "argument")]
+  property default_bool : Bool? = true
+
+  @[KDL::Child(name: "class")]
+  property default_class : TestNodeTwo? = TestNodeTwo.new(one: "Set")
+end
+
+# :ditto:
+# Should raise an exception.
+class MissingWillError
+  include KDL::Serializable
+
+  @[KDL::Child(unwrap: "argument")]
+  property string : String
+
+  @[KDL::Child(unwrap: "argument")]
+  property int : Int64
+
+  @[KDL::Child(unwrap: "argument")]
+  property bool : Bool
+
+  @[KDL::Child]
+  property class : TestNodeTwo
+end
+
 class TestNode
   include KDL::Serializable
 
@@ -53,53 +108,12 @@ class TestNode
   property paths : Array(String)
 end
 
-class MissingArgumentWithDefault
+class TestNodeTwo
   include KDL::Serializable
 
   @[KDL::Child(unwrap: "argument")]
-  property missing : String = "default"
+  property one : String? = "Unset"
 
-  def initialize
+  def initialize(@one)
   end
-end
-
-class MissingArgumentWithNilable
-  include KDL::Serializable
-
-  @[KDL::Child(unwrap: "argument")]
-  property missing : String?
-end
-
-class MissingArgumentWithoutDefault
-  include KDL::Serializable
-
-  @[KDL::Child(unwrap: "argument")]
-  property missing : String
-end
-
-class NestedMissingArgumentWithDefault
-  include KDL::Serializable
-
-  @[KDL::Child(name: "missing")]
-  property missing : MissingArgumentWithDefault = MissingArgumentWithDefault.new
-
-  def initialize
-  end
-end
-
-class NestedMissingArgumentWithNilable
-  include KDL::Serializable
-
-  @[KDL::Child(name: "missing")]
-  property missing : MissingArgumentWithDefault? = nil
-
-  def initialize
-  end
-end
-
-class NestedMissingArgumentWithoutDefault
-  include KDL::Serializable
-
-  @[KDL::Child(name: "missing")]
-  property missing : MissingArgumentWithoutDefault
 end
